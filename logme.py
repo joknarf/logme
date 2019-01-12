@@ -3,6 +3,7 @@ import sys
 from subprocess import call
 from threading import Thread
 from time import sleep
+from datetime import datetime
 
 class Logme( Thread ):
   def __init__( self, logfile ):
@@ -13,6 +14,9 @@ class Logme( Thread ):
     fd = open( logfile, 'w' )
     fd.close()
     
+  def __now(self):
+    return datetime.now().strftime('%Y-%m-%d %H:%M:%S ')
+
   def run( self ):
     fd = open( self.logfile, 'r' )
     log = open( 'logme.out', 'w' )
@@ -20,7 +24,7 @@ class Logme( Thread ):
     while True:
       new += fd.readline()
       if new and new != new.rstrip("\n"):
-        log.write( new )
+        log.write( self.__now() + new )
         log.flush()
         new = ""
       else:
@@ -28,20 +32,25 @@ class Logme( Thread ):
             break
         sleep(0.5)
     fd.close()
-    log.write(f"log:exit_code:{self.exit_code}\n")
+    log.write(f"{self.__now()}exit_code:{self.exit_code}\n")
     log.close()
 
   def finish( self, exit_code ):
     self.exit_code = exit_code
     self.finished = True
 
-logthread = Logme( 'typescript' )
+logfile = 'typescript'
+logthread = Logme( logfile )
 logthread.start()
-opt = ''
+
+cmd = [ '/usr/bin/script', '--return', '--flush', '--quiet' ]
 if len(sys.argv) == 2:
-  opt = f"-c '{sys.argv[1]}'"
-exit_code = call(f"script -e -f {opt}",shell=True)
+  cmd += [ '--command', sys.argv[1] ]
+cmd.append( logfile )
+
+exit_code = call(cmd)
+
 logthread.finish(exit_code)
 logthread.join()
-print('done')
+print('==> logme done')
 exit(exit_code)
