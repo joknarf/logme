@@ -39,18 +39,22 @@ class Logme( Thread ):
     self.exit_code = exit_code
     self.finished = True
 
-logfile = 'typescript'
-logthread = Logme( logfile )
-logthread.start()
+def main():
+  logfile = 'typescript'
+  logthread = Logme( logfile )
+  logthread.start()
 
-cmd = [ '/usr/bin/script', '--return', '--flush', '--quiet' ]
-if len(sys.argv) == 2:
-  cmd += [ '--command', sys.argv[1] ]
-cmd.append( logfile )
+  cmd = [ '/usr/bin/script', '--return', '--flush', '--quiet' ]
+  if len(sys.argv) == 2:
+    cmd += [ '--command', sys.argv[1] ]
+  cmd.append( logfile )
 
-exit_code = call(cmd)
+  exit_code = call(cmd)
 
-logthread.finish(exit_code)
-logthread.join()
-print('==> logme done')
-exit(exit_code)
+  logthread.finish(exit_code)
+  logthread.join()
+  print('==> logme done')
+  sys.exit(exit_code)
+
+if __name__ == '__main__':
+  main()
