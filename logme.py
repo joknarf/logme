@@ -1,4 +1,4 @@
-#!/usr/bin/python3.6 -u
+#!/usr/bin/python
 import sys
 from subprocess import call
 from threading import Thread
@@ -14,7 +14,7 @@ class Logme( Thread ):
     fd = open( logfile, 'w' )
     fd.close()
     
-  def __now(self):
+  def __timestamp(self):
     return datetime.now().strftime('%Y-%m-%d %H:%M:%S ')
 
   def run( self ):
@@ -24,7 +24,7 @@ class Logme( Thread ):
     while True:
       new += fd.readline()
       if new and new != new.rstrip("\n"):
-        log.write( self.__now() + new )
+        log.write( self.__timestamp() + new )
         log.flush()
         new = ""
       else:
@@ -32,7 +32,7 @@ class Logme( Thread ):
             break
         sleep(0.5)
     fd.close()
-    log.write(f"{self.__now()}exit_code:{self.exit_code}\n")
+    log.write(self.__timestamp() + 'exit_code:' + str(self.exit_code) + "\n")
     log.close()
 
   def finish( self, exit_code ):
