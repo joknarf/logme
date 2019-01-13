@@ -6,26 +6,26 @@ from time import sleep
 from datetime import datetime
 import argparse
 
-class Logme( Thread ):
-  def __init__( self, logfile ):
+class Logmelogger(Thread):
+  def __init__(self, logfile):
     Thread.__init__(self)
     self.logfile = logfile
     self.finished = False
     self.exit_code = 0
-    fd = open( logfile, 'w' )
+    fd = open(logfile, 'w')
     fd.close()
     
   def __timestamp(self):
     return datetime.now().strftime('%Y-%m-%d %H:%M:%S ')
 
   def run( self ):
-    fd = open( self.logfile, 'r' )
-    log = open( 'logme.out', 'w' )
+    fd = open(self.logfile, 'r')
+    log = open('logme.out', 'w')
     new = ""
     while True:
       new += fd.readline()
       if new and new != new.rstrip("\n"):
-        log.write( self.__timestamp() + new )
+        log.write(self.__timestamp() + new)
         log.flush()
         new = ""
       else:
@@ -36,27 +36,34 @@ class Logme( Thread ):
     log.write(self.__timestamp() + 'exit_code:' + str(self.exit_code) + "\n")
     log.close()
 
-  def finish( self, exit_code ):
+  def finish(self, exit_code):
     self.exit_code = exit_code
     self.finished = True
 
+class Logme(Thread):
+  def __init__(self, logfile):
+    self.logfile = logfile
+
+  def run(self, command):
+    logthread = Logmelogger(self.logfile)
+    logthread.start()
+    cmd = ['/usr/bin/script', '--return', '--flush', '--quiet']
+    if command:
+      cmd += [ '--command', command ]
+    cmd.append(self.logfile)
+    exit_code = call(cmd)
+    logthread.finish(exit_code)
+    logthread.join()
+    return exit_code
+
+    
 def main():
   parser = argparse.ArgumentParser()
-  parser.add_argument( '--logfile', '-f', default='typescript' )
-  parser.add_argument( '--command', '-c', default='' )
+  parser.add_argument('--logfile', '-f', default='typescript')
+  parser.add_argument('--command', '-c', default='')
   args = parser.parse_args()
-  logthread = Logme( args.logfile )
-  logthread.start()
-
-  cmd = [ '/usr/bin/script', '--return', '--flush', '--quiet' ]
-  if args.command:
-    cmd += [ '--command', args.command ]
-  cmd.append( args.logfile )
-
-  exit_code = call(cmd)
-
-  logthread.finish(exit_code)
-  logthread.join()
+  logjob = Logme(args.logfile)
+  exit_code = logjob.run(args.command)
   print('==> logme done')
   sys.exit(exit_code)
 
