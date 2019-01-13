@@ -55,24 +55,25 @@ class Logme():
         A class to run command with script to get logged output
         Send the log to a log facility
     """
-    def __init__(self, logfile):
+    def __init__(self, logfile='/var/tmp/logme.log'):
         self.logfile = logfile
         open(logfile, 'w').close()
         self.logthread = Logmelogger(self.logfile)
         self.logthread.start()
 
-    def run(self, command):
+    def logwrite(self, line):
         logf = open(self.logfile, 'a')
-        logf.write('Starting command: ' + command + "\n")
+        logf.write(line + "\n")
         logf.close()
+        
+    def run(self, command):
+        self.logwrite('Starting command: ' + command)
         cmd = ['/usr/bin/script', '--return', '--flush', '--quiet', '--append']
         if command:
             cmd += ['--command', command]
         cmd.append(self.logfile)
         exit_code = call(cmd)
-        logf = open(self.logfile, 'a')
-        logf.write('End of command: ' + command + ' : exit code: ' + str(exit_code) + "\n")
-        logf.close()
+        self.logwrite('End of command: ' + command + ' : exit code: ' + str(exit_code) + "\n")
         return exit_code
 
     def close(self):
@@ -82,7 +83,7 @@ class Logme():
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--logfile', '-f', default='typescript')
+    parser.add_argument('--logfile', '-f', default='/var/tmp/logme.log')
     parser.add_argument('--command', '-c', default='')
     args = parser.parse_args()
     logjob = Logme(args.logfile)
