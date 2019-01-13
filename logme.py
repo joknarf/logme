@@ -4,6 +4,7 @@ from subprocess import call
 from threading import Thread
 from time import sleep
 from datetime import datetime
+import argparse
 
 class Logme( Thread ):
   def __init__( self, logfile ):
@@ -40,14 +41,17 @@ class Logme( Thread ):
     self.finished = True
 
 def main():
-  logfile = 'typescript'
-  logthread = Logme( logfile )
+  parser = argparse.ArgumentParser()
+  parser.add_argument( '--logfile', '-f', default='typescript' )
+  parser.add_argument( '--command', '-c', default='' )
+  args = parser.parse_args()
+  logthread = Logme( args.logfile )
   logthread.start()
 
   cmd = [ '/usr/bin/script', '--return', '--flush', '--quiet' ]
-  if len(sys.argv) == 2:
-    cmd += [ '--command', sys.argv[1] ]
-  cmd.append( logfile )
+  if args.command:
+    cmd += [ '--command', args.command ]
+  cmd.append( args.logfile )
 
   exit_code = call(cmd)
 
