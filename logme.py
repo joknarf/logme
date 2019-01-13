@@ -47,7 +47,7 @@ class Logmelogger(Thread):
         self.logread.close()
         self.logclose()
 
-    def finish(self):
+    def stop(self):
         self.finished = True
 
 class Logme():
@@ -77,7 +77,7 @@ class Logme():
         return exit_code
 
     def close(self):
-        self.logthread.finish()
+        self.logthread.stop()
         self.logthread.join()
 
 
